@@ -1,0 +1,44 @@
+"""
+Configuración para Google OAuth - Proyecto LoopApp
+Para obtener estas credenciales en tu proyecto LoopApp (ID: loopapp-13b10):
+
+1. Ve a https://console.cloud.google.com/
+2. Selecciona tu proyecto "LoopApp" (ID: loopapp-13b10)
+3. Ve a "APIs & Services" > "Library"
+4. Habilita las siguientes APIs:
+   - Google+ API
+   - Google Identity API
+5. Ve a "APIs & Services" > "Credentials"
+6. Haz clic en "Create Credentials" > "OAuth 2.0 Client IDs"
+7. Selecciona "Web application"
+8. Name: "LoopWebApp OAuth"
+9. Authorized redirect URIs: http://localhost:8000/auth/google/callback/
+10. Haz clic en "Create"
+11. Configura las variables de entorno GOOGLE_OAUTH_CLIENT_ID y GOOGLE_OAUTH_CLIENT_SECRET
+
+Ejemplo de uso:
+export GOOGLE_OAUTH_CLIENT_ID="tu-client-id-aqui"
+export GOOGLE_OAUTH_CLIENT_SECRET="tu-client-secret-aqui"
+
+O crea un archivo .env con:
+GOOGLE_OAUTH_CLIENT_ID=tu-client-id-aqui
+GOOGLE_OAUTH_CLIENT_SECRET=tu-client-secret-aqui
+
+"""
+
+import os
+
+# Obtener credenciales de variables de entorno
+GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '')
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', '')
+
+GOOGLE_OAUTH_CONFIG = {
+    "web": {
+        "client_id": GOOGLE_OAUTH_CLIENT_ID,
+        "client_secret": GOOGLE_OAUTH_CLIENT_SECRET,
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "redirect_uris": ["http://localhost:8000/auth/google/callback/"]
+    }
+}
+

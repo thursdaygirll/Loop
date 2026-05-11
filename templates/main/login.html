@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loop - Iniciar sesión</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        'brand-sky': '#87CEEB',
+                        'brand-sky-light': '#6EC6F5',
+                        'card-bg': '#E6F0FA',
+                        'text-primary': '#222222',
+                        'text-secondary': '#666666',
+                        'accent-blue': '#4a90e2',
+                        'danger': '#F87171',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex items-center justify-center font-sans"
+      style="background: url('{% static 'main/login-bg.png' %}') no-repeat center center/cover;">
+    <div class="bg-white rounded-[2.5rem] shadow-xl p-6 sm:p-12 w-full max-w-xs sm:max-w-md flex flex-col items-center"
+         style="box-shadow: 0 8px 32px 0 rgba(0,0,0,0.10);">
+        <h1 class="text-4xl font-bold text-brand-sky mb-2 mt-4">Loop</h1>
+        <p class="mb-8 text-center text-text-secondary text-sm">¡Bienvenido de vuelta! Inicia sesión con tu cuenta.</p>
+
+        {% if error %}
+        <div class="bg-red-50 border border-danger text-danger px-4 py-3 rounded-xl mb-4 w-full text-sm">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-4">
+            {% csrf_token %}
+            <input type="email" name="email" placeholder="Correo electrónico"
+                   class="p-4 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-sky text-text-primary" required />
+            <input type="password" name="password" placeholder="Contraseña"
+                   class="p-4 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-sky text-text-primary" required />
+            <button type="submit"
+                    class="bg-brand-sky text-white rounded-xl py-4 text-base font-semibold mt-2 transition hover:bg-brand-sky-light shadow-md">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <a href="{% url 'register' %}" class="mt-4 text-text-secondary text-sm hover:text-accent-blue transition">
+            ¿No tienes cuenta? <span class="underline font-medium">Regístrate</span>
+        </a>
+
+        <div class="flex items-center justify-center my-5 w-full">
+            <hr class="flex-grow border-gray-200" />
+            <span class="px-4 text-gray-400 font-medium text-xs">O</span>
+            <hr class="flex-grow border-gray-200" />
+        </div>
+
+        <a href="{% url 'google_login' %}"
+           class="flex items-center justify-center w-12 h-12 rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition">
+            <img src="{% static 'main/googleicon.png' %}" alt="Google" class="w-6 h-6" />
+        </a>
+    </div>
+</body>
+</html>

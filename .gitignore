@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+.DS_Store
+staticfiles/
+.vscode/
+.env
+loopwebapp/google_oauth_config.py
+env/
+*.json
+!loopwebapp/google_oauth_config.py.example

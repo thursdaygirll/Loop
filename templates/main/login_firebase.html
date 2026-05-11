@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loop - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center"
+      style="background: url('{% static 'main/login-bg.png' %}') no-repeat center center/cover;">
+    
+    <div class="bg-white rounded-[2.5rem] shadow-xl p-6 sm:p-12 w-full max-w-xs sm:max-w-md flex flex-col items-center"
+         style="box-shadow: 0 8px 24px 0 rgba(0,0,0,0.10);">
+        <h1 class="text-4xl font-bold text-blue-500 mb-4 mt-4">Loop</h1>
+        <p class="mb-8 text-center text-gray-500">Welcome back! Sign in with your information below.</p>
+        
+        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 w-full"></div>
+        
+        <!-- Login tradicional -->
+        <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-6">
+            {% csrf_token %}
+            <input type="email" name="email" placeholder="Email" class="p-4 rounded-lg shadow focus:outline-none border border-gray-200 bg-gray-50" required />
+            <input type="password" name="password" placeholder="Password" class="p-4 rounded-lg shadow focus:outline-none border border-gray-200 bg-gray-50" required />
+            <button type="submit" class="bg-gray-100 shadow-lg rounded-xl py-4 text-xl font-semibold mt-4 transition hover:bg-gray-200">Login</button>
+        </form>
+        
+        <a href="{% url 'register' %}" class="mt-4 text-gray-500 underline text-sm">Create an account</a>
+        
+        <div class="flex items-center justify-center my-4 w-full">
+            <hr class="flex-grow border-gray-200" />
+            <span class="px-4 text-gray-400 font-bold text-sm">OR</span>
+            <hr class="flex-grow border-gray-200" />
+        </div>
+        
+        <!-- Botón de Google con Firebase -->
+        <button id="google-login-btn" class="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition">
+            <img src="{% static 'main/googleicon.png' %}" alt="Google" class="w-7 h-7" />
+        </button>
+    </div>
+
+    <script>
+        // Configuración de Firebase (usa tu configuración actual)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7cihT769KcAW2TI-6ojfpN_SV9yROkpY",
+            authDomain: "loopapp-13b10.firebaseapp.com",
+            databaseURL: "https://loopapp-13b10-default-rtdb.firebaseio.com",
+            projectId: "loopapp-13b10",
+            storageBucket: "loopapp-13b10.appspot.com",
+            messagingSenderId: "764577657193",
+            appId: "1:764577657193:web:c2daa1bdaf99c1ccdb0df8",
+            measurementId: "G-VQ4N4X0HE4"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Configurar proveedor de Google
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+
+        // Manejar login con Google
+        document.getElementById('google-login-btn').addEventListener('click', function() {
+            auth.signInWithPopup(googleProvider)
+                .then((result) => {
+                    // Usuario autenticado exitosamente
+                    const user = result.user;
+                    console.log('Usuario autenticado:', user.email);
+                    
+                    // Obtener el token de ID
+                    return user.getIdToken();
+                })
+                .then((idToken) => {
+                    // Enviar token al backend
+                    return fetch('/auth/firebase-google/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            id_token: idToken
+                        })
+                    });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        showError(data.error || 'Error en la autenticación');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showError('Error al iniciar sesión con Google');
+                });
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html> 

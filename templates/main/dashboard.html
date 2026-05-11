@@ -1,0 +1,375 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loop — Inicio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand:        '#87CEEB',
+                        'brand-lt':   '#6EC6F5',
+                        'page-bg':    '#F0F4F8',
+                        'card-bg':    '#E6F0FA',
+                        navy:         '#1a2942',
+                        'food-bg':    '#D6F5D6', food:    '#3A9E3A',
+                        'med-bg':     '#FFF6CC', med:     '#C49A2A',
+                        'hyg-bg':     '#BFE3FA', hyg:     '#4A9EC4',
+                        'text-pri':   '#222222',
+                        'text-sec':   '#555555',
+                        'text-muted': '#888888',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .nav-link { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; color:rgba(255,255,255,.5); font-size:13px; font-weight:500; text-decoration:none; transition:all .15s; }
+        .nav-link:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.07); }
+        .nav-link.active { color:#fff; background:rgba(255,255,255,.12); }
+        .nav-icon { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.08); flex-shrink:0; }
+        .nav-link.active .nav-icon { background:rgba(135,206,235,.2); }
+        .card { background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,.06); box-shadow:0 1px 3px rgba(0,0,0,.04); }
+
+        /* Sidebar slide transition */
+        #sidebar { transition: transform 0.25s ease; }
+        #main-content { transition: margin-left 0.25s ease; }
+    </style>
+</head>
+<body class="bg-page-bg font-sans text-text-pri min-h-screen">
+<div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="hidden lg:flex flex-col w-56 min-h-screen fixed left-0 top-0 bottom-0 z-30 bg-navy" style="box-shadow:2px 0 20px rgba(0,0,0,.15);">
+        <div class="flex items-center gap-3 px-4 py-5 border-b border-white/5 mb-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(135,206,235,.12);border:1px solid rgba(135,206,235,.18);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 12a9 9 0 1 1-9-9" stroke="#87CEEB" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M12 3l3.5 3.5L12 10" stroke="#87CEEB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="text-white font-bold text-lg flex-1">Loop</span>
+            <!-- Collapse button -->
+            <button onclick="toggleSidebar()" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition flex-shrink-0" title="Ocultar menú">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.5)" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="flex flex-col gap-0.5 flex-1 px-3">
+            <a href="/dashboard/" class="nav-link active">
+                <div class="nav-icon"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+                Inicio
+            </a>
+            <a href="/habits/" class="nav-link">
+                <div class="nav-icon"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
+                Hábitos
+            </a>
+            <a href="/profile/" class="nav-link">
+                <div class="nav-icon"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+                Perfil
+            </a>
+        </nav>
+        <div class="px-3 pb-5">
+            <a href="/logout/" class="nav-link">
+                <div class="nav-icon"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div>
+                Cerrar sesión
+            </a>
+        </div>
+    </aside>
+
+    <!-- Sidebar re-open button (shown when collapsed, desktop only) -->
+    <button id="sidebar-open-btn" onclick="toggleSidebar()"
+        class="hidden fixed top-5 left-3 z-40 w-9 h-9 rounded-xl bg-navy items-center justify-center shadow-lg hover:opacity-90 transition"
+        style="display:none;" title="Mostrar menú">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+    </button>
+
+    <!-- Mobile topbar -->
+    <div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-navy flex items-center justify-between px-4 py-3" style="box-shadow:0 2px 10px rgba(0,0,0,.2);">
+        <div class="flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 1-9-9" stroke="#87CEEB" stroke-width="2.4" stroke-linecap="round"/><path d="M12 3l3.5 3.5L12 10" stroke="#87CEEB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="text-white font-bold">Loop</span>
+        </div>
+        <div class="flex gap-4 items-center">
+            <a href="/habits/" class="text-white/60"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></a>
+            <a href="/profile/"><img src="{{ photo_url }}" class="w-8 h-8 rounded-full object-cover" style="outline:2px solid rgba(135,206,235,.4);"></a>
+        </div>
+    </div>
+
+    <!-- Main — offset by sidebar width on desktop -->
+    <main id="main-content" class="flex-1 lg:ml-56 pt-14 lg:pt-0 min-h-screen">
+
+        <!-- Hero -->
+        <div class="bg-navy px-6 sm:px-8 pt-7 pb-8">
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest mb-1.5 text-brand-lt opacity-80">{% now "l, j N Y" %}</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white">Hola, {{ name }} 👋</h1>
+                    <p class="text-sm mt-1 text-white/35">Aquí está tu resumen de hoy</p>
+                </div>
+                <a href="/profile/"><img src="{{ photo_url }}" class="hidden sm:block w-11 h-11 rounded-full object-cover" style="outline:2px solid rgba(255,255,255,.15);"></a>
+            </div>
+            <!-- Stat cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Programados</p>
+                    <p class="text-3xl font-extrabold text-white">{{ total_today }}</p>
+                    <p class="text-xs text-white/25 mt-1">hábitos hoy</p>
+                </div>
+                <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Completados</p>
+                    <p class="text-3xl font-extrabold text-brand-lt">{{ completed_today }}</p>
+                    <p class="text-xs text-white/25 mt-1">de {{ total_today }} hoy</p>
+                </div>
+                <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Mejor racha</p>
+                    <p class="text-3xl font-extrabold text-white">{{ best_streak }} 🔥</p>
+                    <p class="text-xs text-white/25 mt-1 truncate">{{ best_streak_name|default:"—" }}</p>
+                </div>
+                <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Esta semana</p>
+                    <p class="text-3xl font-extrabold text-white">{{ week_pct }}%</p>
+                    <p class="text-xs text-white/25 mt-1">completado</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 sm:p-8 grid lg:grid-cols-5 gap-5">
+
+            <!-- Left (3/5): gauge + categories, weekly chart, quick link -->
+            <div class="lg:col-span-3 flex flex-col gap-5">
+
+                <!-- Progress + categories row -->
+                <div class="grid sm:grid-cols-2 gap-5">
+
+                    <!-- Gauge -->
+                    <div class="card p-5 flex flex-col items-center">
+                        <p class="text-sm font-semibold text-text-pri self-start mb-1">Progreso de hoy</p>
+                        <p class="text-xs text-text-muted self-start mb-4">{{ completed_today }} de {{ total_today }} completados</p>
+                        <div class="relative" style="width:160px;height:90px;overflow:hidden;">
+                            <canvas id="gaugeChart" width="160" height="160" style="width:160px;height:160px;position:absolute;top:0;left:0;"></canvas>
+                            <div class="absolute bottom-0 left-0 right-0 text-center">
+                                <span class="text-3xl font-extrabold text-navy">{{ progress_value }}</span><span class="text-base font-bold text-text-sec">%</span>
+                            </div>
+                        </div>
+                        {% if progress_value == 100 %}<p class="text-xs font-semibold text-food mt-3">¡Todo completado! 🎉</p>{% endif %}
+                    </div>
+
+                    <!-- Category pills -->
+                    <div class="card p-5">
+                        <p class="text-sm font-semibold text-text-pri mb-4">Por categoría</p>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-hyg-bg">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-hyg flex-shrink-0"></span>
+                                    <span class="text-sm font-medium text-hyg">Higiene</span>
+                                </div>
+                                <span class="text-sm font-bold text-hyg">{{ hygiene_percent }}%</span>
+                            </div>
+                            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-med-bg">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-med flex-shrink-0"></span>
+                                    <span class="text-sm font-medium text-med">Salud</span>
+                                </div>
+                                <span class="text-sm font-bold text-med">{{ health_percent }}%</span>
+                            </div>
+                            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-food-bg">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-food flex-shrink-0"></span>
+                                    <span class="text-sm font-medium text-food">Nutrición</span>
+                                </div>
+                                <span class="text-sm font-bold text-food">{{ nutrition_percent }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly chart -->
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-sm font-semibold text-text-pri">Consistencia semanal</p>
+                            <p class="text-xs text-text-muted mt-0.5">% completado por día</p>
+                        </div>
+                        <span class="text-xl font-extrabold text-navy">{{ week_pct }}%</span>
+                    </div>
+                    <canvas id="consistencyChart" height="120"></canvas>
+                </div>
+
+                <!-- Quick link — moved here, below weekly chart -->
+                <a href="/habits/" class="card p-5 block bg-navy border-navy hover:opacity-90 transition">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-brand-lt mb-1.5">Mis hábitos</p>
+                    <p class="text-base font-bold text-white">Ver historial completo</p>
+                    <p class="text-xs text-white/35 mt-1">Filtros, rachas y detalles →</p>
+                </a>
+            </div>
+
+            <!-- Right (2/5): donut + heatmap -->
+            <div class="lg:col-span-2 flex flex-col gap-5">
+
+                <!-- Donut -->
+                <div class="card p-5">
+                    <p class="text-sm font-semibold text-text-pri mb-1">Completados por tipo</p>
+                    <p class="text-xs text-text-muted mb-4">Esta semana</p>
+                    <div class="flex justify-center mb-4">
+                        <div style="width:120px;height:120px;"><canvas id="typeChart"></canvas></div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-hyg flex-shrink-0"></span><span class="text-sm text-text-sec flex-1">Higiene</span><span class="text-sm font-bold text-hyg">{{ hygiene_percent }}%</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-med flex-shrink-0"></span><span class="text-sm text-text-sec flex-1">Salud</span><span class="text-sm font-bold text-med">{{ health_percent }}%</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-food flex-shrink-0"></span><span class="text-sm text-text-sec flex-1">Nutrición</span><span class="text-sm font-bold text-food">{{ nutrition_percent }}%</span></div>
+                    </div>
+                </div>
+
+                <!-- Heatmap -->
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-sm font-semibold text-text-pri">Mapa del mes</p>
+                            <p class="text-xs text-text-muted mt-0.5">{{ month_name_es }} {{ month_year }}</p>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-text-muted">
+                            <span>0</span>
+                            <div class="flex gap-0.5">
+                                <div class="w-3 h-3 rounded-sm bg-card-bg"></div>
+                                <div class="w-3 h-3 rounded-sm" style="background:rgba(135,206,235,.3)"></div>
+                                <div class="w-3 h-3 rounded-sm" style="background:rgba(135,206,235,.6)"></div>
+                                <div class="w-3 h-3 rounded-sm bg-brand"></div>
+                            </div>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 mb-1">
+                        {% for d in "DLMMJVS" %}<div class="text-center text-xs font-medium text-text-muted">{{ d }}</div>{% endfor %}
+                    </div>
+                    <div class="grid grid-cols-7 gap-1" id="heatmap">
+                        {% for i in "x"|ljust:first_js_day %}<div></div>{% endfor %}
+                        {% for day in heatmap_days %}
+                        <div class="relative group">
+                            <div class="w-full aspect-square rounded-md flex items-center justify-center text-xs font-medium"
+                                 style="
+                                    {% if day.is_future %}background:#f0f4f8;color:#ccc;
+                                    {% elif day.pct == None %}background:#e6f0fa;color:#bbb;
+                                    {% elif day.pct == 0 %}background:#fff;color:#ccc;border:1px solid #d4e8f5;
+                                    {% elif day.pct < 34 %}background:rgba(135,206,235,.25);color:#2d7ca8;
+                                    {% elif day.pct < 67 %}background:rgba(135,206,235,.55);color:#fff;
+                                    {% elif day.pct < 100 %}background:#87CEEB;color:#fff;
+                                    {% else %}background:#6EC6F5;color:#fff;font-weight:700;
+                                    {% endif %}
+                                    {% if day.is_today %}outline:2px solid #87CEEB;outline-offset:1px;{% endif %}
+                                 ">{{ day.day }}</div>
+                            {% if not day.is_future %}
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
+                                <div class="bg-navy text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap">
+                                    {% if day.pct == None %}Sin hábitos{% else %}{{ day.pct }}%{% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{{ consistency_labels|json_script:"clabels" }}
+{{ consistency_data|json_script:"cdata" }}
+{{ type_completion_counts|json_script:"tcounts" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // ── Sidebar toggle ────────────────────────────────────────────────────────
+    const SIDEBAR_KEY = 'loopSidebarOpen';
+    let sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
+
+    function updateSidebar(animate) {
+        const sidebar  = document.getElementById('sidebar');
+        const main     = document.getElementById('main-content');
+        const openBtn  = document.getElementById('sidebar-open-btn');
+
+        if (!sidebar) return;
+
+        if (sidebarOpen) {
+            sidebar.style.transform = '';
+            main.style.marginLeft = '';
+            openBtn.style.display = 'none';
+        } else {
+            sidebar.style.transform = 'translateX(-100%)';
+            main.style.marginLeft = '0';
+            openBtn.style.display = 'flex';
+        }
+    }
+
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+        localStorage.setItem(SIDEBAR_KEY, sidebarOpen);
+        updateSidebar(true);
+    }
+
+    // Apply on load (no animation flash)
+    document.addEventListener('DOMContentLoaded', () => updateSidebar(false));
+
+    // ── Charts ────────────────────────────────────────────────────────────────
+    const gaugeVal = {{ progress_value }};
+    new Chart(document.getElementById('gaugeChart'), {
+        type: 'doughnut',
+        data: { datasets: [{ data: [gaugeVal, 100 - gaugeVal], backgroundColor: ['#87CEEB', '#E6F0FA'], borderWidth: 0 }] },
+        options: { rotation: 180, circumference: 180, cutout: '76%', responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+    });
+
+    const labels  = JSON.parse(document.getElementById('clabels').textContent);
+    const barData = JSON.parse(document.getElementById('cdata').textContent);
+    const bgPlugin = {
+        id: 'bgBars',
+        beforeDatasetsDraw(chart) {
+            const { ctx, scales: { x, y } } = chart;
+            chart.getDatasetMeta(0).data.forEach(bar => {
+                ctx.save();
+                ctx.fillStyle = '#E6F0FA';
+                const bw = bar.width, bx = bar.x - bw / 2;
+                const by = y.getPixelForValue(100), bh = y.getPixelForValue(0) - by, r = 6;
+                ctx.beginPath();
+                ctx.moveTo(bx + r, by); ctx.lineTo(bx + bw - r, by);
+                ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+                ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx, by + bh);
+                ctx.lineTo(bx, by + r); ctx.quadraticCurveTo(bx, by, bx + r, by);
+                ctx.closePath(); ctx.fill(); ctx.restore();
+            });
+        }
+    };
+    new Chart(document.getElementById('consistencyChart'), {
+        type: 'bar', plugins: [bgPlugin],
+        data: { labels, datasets: [{ data: barData, backgroundColor: '#87CEEB', hoverBackgroundColor: '#6EC6F5', borderRadius: 6, borderSkipped: false, barPercentage: 0.5 }] },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.parsed.y}%` }, backgroundColor: '#1a2942', padding: 8, cornerRadius: 8 } },
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { family: 'Poppins', size: 10 }, color: '#888' }, grid: { color: '#e6f0fa' }, border: { display: false } },
+                x: { ticks: { font: { family: 'Poppins', size: 11 }, color: '#666' }, grid: { display: false }, border: { display: false } }
+            }
+        }
+    });
+
+    const tc = JSON.parse(document.getElementById('tcounts').textContent);
+    const tot = tc.reduce((a, b) => a + b, 0);
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: { labels: ['Higiene','Salud','Nutrición'], datasets: [{ data: tot > 0 ? tc : [1,1,1], backgroundColor: tot > 0 ? ['#4A9EC4','#C49A2A','#3A9E3A'] : ['#BFE3FA','#FFF6CC','#D6F5D6'], borderWidth: 0, hoverOffset: 5 }] },
+        options: { responsive: true, cutout: '68%', plugins: { legend: { display: false }, tooltip: { enabled: tot > 0, callbacks: { label: c => ` ${c.label}: ${c.parsed}` }, backgroundColor: '#1a2942', padding: 8, cornerRadius: 8 } } }
+    });
+</script>
+</body>
+</html>
