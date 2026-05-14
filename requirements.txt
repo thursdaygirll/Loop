@@ -10,3 +10,4 @@ python-jwt==4.1.0
 jwcrypto==1.5.7
 httpx==0.28.1
 requests==2.32.5
+google-auth-oauthlib
