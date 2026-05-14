@@ -16,6 +16,11 @@ fi
 echo "Installing dependencies..."
 "$PIP" install -r "$PROJECT_DIR/requirements.txt" -q
 
+# Load .env if present
+if [ -f "$PROJECT_DIR/.env" ]; then
+    export $(grep -v '^#' "$PROJECT_DIR/.env" | xargs)
+fi
+
 # Check for Firebase credentials
 if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
     DEFAULT_CREDS="$PROJECT_DIR/loopapp-13b10-firebase-adminsdk-fbsvc-879b0aa064.json"
