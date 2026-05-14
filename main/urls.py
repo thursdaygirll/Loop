@@ -14,6 +14,7 @@ urlpatterns = [
     path('get_profile/<str:user_id>/', views.get_profile, name='get_profile'),
     path('auth/google/', views.google_login, name='google_login'),
     path('auth/google/callback/', views.google_callback, name='google_callback'),
+    path('accounts/google/login/callback/', views.google_callback, name='google_callback_allauth'),
     path('logout/', views.logout_view, name='logout'),
     path('login-firebase/', views.login_firebase_view, name='login_firebase'),
     path('auth/firebase-google/', views.firebase_google_auth, name='firebase_google_auth'),

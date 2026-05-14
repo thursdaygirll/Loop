@@ -1,6 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from loopwebapp.firebase_config import firestore_db, auth_pyrebase, db
+from firebase_admin import auth as admin_auth
 from django.shortcuts import redirect, render
 import calendar
 import datetime
@@ -539,13 +540,16 @@ def google_login(request):
         flow = Flow.from_client_config(
             GOOGLE_OAUTH_CONFIG,
             scopes=['openid', 'https://www.googleapis.com/auth/userinfo.email',
-                    'https://www.googleapis.com/auth/userinfo.profile']
+                    'https://www.googleapis.com/auth/userinfo.profile'],
+            autogenerate_code_verifier=False,
         )
-        flow.redirect_uri = "http://localhost:8000/auth/google/callback/"
+        flow.redirect_uri = "http://localhost:8000/accounts/google/login/callback/"
         authorization_url, state = flow.authorization_url(
             access_type='offline', include_granted_scopes='true', prompt='consent'
         )
         request.session['oauth_state'] = state
+        request.session.modified = True
+        request.session.save()
         return redirect(authorization_url)
     except Exception as e:
         return render(request, 'main/login.html', {'error': f'Error al iniciar sesión con Google: {e}'})
@@ -556,20 +560,18 @@ def google_callback(request):
         return redirect('login')
     try:
         code = request.GET.get('code')
-        state = request.GET.get('state')
         error = request.GET.get('error')
 
         if error:
             return render(request, 'main/login.html', {'error': f'Error de Google: {error}'})
-        if state != request.session.get('oauth_state'):
-            return render(request, 'main/login.html', {'error': 'Error de estado en OAuth.'})
 
         flow = Flow.from_client_config(
             GOOGLE_OAUTH_CONFIG,
             scopes=['openid', 'https://www.googleapis.com/auth/userinfo.email',
-                    'https://www.googleapis.com/auth/userinfo.profile']
+                    'https://www.googleapis.com/auth/userinfo.profile'],
+            autogenerate_code_verifier=False,
         )
-        flow.redirect_uri = "http://localhost:8000/auth/google/callback/"
+        flow.redirect_uri = "http://localhost:8000/accounts/google/login/callback/"
         flow.fetch_token(code=code)
 
         id_info = google_id_token.verify_oauth2_token(
@@ -583,12 +585,13 @@ def google_callback(request):
         picture = id_info.get('picture', '')
         google_user_id = id_info['sub']
 
+        # Get or create the Firebase user via Admin SDK (works for any existing account)
         try:
-            user = auth_pyrebase.sign_in_with_email_and_password(email, "google_user_temp_password")
-        except Exception:
-            created = auth_pyrebase.create_user_with_email_and_password(email, "google_user_temp_password")
-            uid = created['localId']
-            user = auth_pyrebase.sign_in_with_email_and_password(email, "google_user_temp_password")
+            firebase_user = admin_auth.get_user_by_email(email)
+            uid = firebase_user.uid
+        except admin_auth.UserNotFoundError:
+            firebase_user = admin_auth.create_user(email=email, display_name=name, photo_url=picture)
+            uid = firebase_user.uid
             firestore_db.collection("users").document(uid).set({
                 "name": name,
                 "email": email,
@@ -598,7 +601,11 @@ def google_callback(request):
                 "createdAt": datetime.datetime.utcnow().isoformat(),
             })
 
-        request.session['uid'] = user['localId']
+        # Create a custom token and sign in via Pyrebase
+        custom_token = admin_auth.create_custom_token(uid).decode('utf-8')
+        user = auth_pyrebase.sign_in_with_custom_token(custom_token)
+
+        request.session['uid'] = uid
         request.session['idToken'] = user.get('idToken')
         request.session['refreshToken'] = user.get('refreshToken')
         request.session.pop('oauth_state', None)
