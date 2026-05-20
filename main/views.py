@@ -85,6 +85,44 @@ def _get_fresh_token(request):
     return request.session.get('idToken')
 
 
+def _get_firebase_custom_token(user_id):
+    """Generate a short-lived Firebase custom token for client-side real-time auth."""
+    try:
+        token = admin_auth.create_custom_token(user_id)
+        return token.decode('utf-8') if isinstance(token, bytes) else token
+    except Exception as e:
+        print(f"[custom_token] Error for {user_id}: {e}")
+        return ''
+
+
+def _normalize_days(habit):
+    """Return the habit's scheduled days as a list of integers (0=Sun … 6=Sat)."""
+    result = []
+    for d in habit.get("days", []):
+        try:
+            result.append(int(d))
+        except (TypeError, ValueError):
+            pass
+    return result
+
+
+def _get_progress_values(user_id, id_token=None):
+    """Fetch progress records from Firestore at devices/device_001/progress."""
+    try:
+        docs = (
+            firestore_db.collection("devices")
+            .document("device_001")
+            .collection("progress")
+            .stream()
+        )
+        values = [doc.to_dict() for doc in docs]
+        print(f"[progress] Found {len(values)} records in Firestore devices/device_001/progress")
+        return values
+    except Exception as e:
+        print(f"[progress] Firestore error: {e}")
+    return []
+
+
 def _compute_streaks(user_habits, progress_values):
     """
     For each habit, compute the current consecutive-day streak.
@@ -108,7 +146,7 @@ def _compute_streaks(user_habits, progress_values):
             date_str = check_date.strftime("%Y-%m-%d")
             # Python weekday: Mon=0..Sun=6 → JS getDay: Sun=0..Sat=6
             js_day = (check_date.weekday() + 1) % 7
-            scheduled_days = habit.get("days", [])
+            scheduled_days = _normalize_days(habit)
 
             if js_day not in scheduled_days:
                 # Not scheduled — skip without breaking
@@ -206,8 +244,6 @@ def dashboard_view(request):
     if not id_token:
         return redirect('login')
 
-    device_id = "device_001"
-
     # Habits (Firestore → RTDB fallback)
     user_habits = _get_user_habits(user_id, id_token)
 
@@ -216,9 +252,8 @@ def dashboard_view(request):
     display_name = user_data.get("name", "Usuario")
     photo_url = user_data.get("profile_picture") or "/static/main/profileicon.png"
 
-    # Progress from Realtime Database
-    progress = db.child("devices").child(device_id).child("progress").get(id_token).val() or {}
-    progress_values = list(progress.values()) if isinstance(progress, dict) else []
+    # Progress from Realtime Database (tries multiple paths)
+    progress_values = _get_progress_values(user_id, id_token)
 
     days_order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     consistency_labels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -232,7 +267,7 @@ def dashboard_view(request):
     # Total habits scheduled per day
     total_per_day = {day: 0 for day in days_order}
     for habit in user_habits.values():
-        for day_num in habit.get("days", []):
+        for day_num in _normalize_days(habit):
             if 0 <= day_num < len(days_order):
                 total_per_day[days_order[day_num]] += 1
 
@@ -269,7 +304,7 @@ def dashboard_view(request):
     for habit in user_habits.values():
         tipo = habit.get("type")
         if tipo in type_scheduled_week:
-            type_scheduled_week[tipo] += sum(1 for d in habit.get("days", []) if 0 <= d < 7)
+            type_scheduled_week[tipo] += sum(1 for d in _normalize_days(habit) if 0 <= d < 7)
 
     type_completed_pairs = {t: set() for t in types}
     for prog in progress_values:
@@ -309,7 +344,7 @@ def dashboard_view(request):
         d = first_of_month + datetime.timedelta(days=i)
         date_str = d.strftime("%Y-%m-%d")
         js_day = (d.weekday() + 1) % 7
-        total_sched = sum(1 for h in user_habits.values() if js_day in h.get("days", []))
+        total_sched = sum(1 for h in user_habits.values() if js_day in _normalize_days(h))
         if total_sched == 0:
             completion_pct = None
         else:
@@ -361,6 +396,14 @@ def dashboard_view(request):
         'month_name_es': month_name_es,
         'month_year': today.strftime("%Y"),
         'type_completion_counts': type_completion_counts,
+        'today_str': datetime.date.today().strftime("%Y-%m-%d"),
+        'user_id': user_id,
+        'fb_custom_token': _get_firebase_custom_token(user_id),
+        'user_habits_json': json.dumps({
+            hid: {'type': h.get('type', ''), 'days': _normalize_days(h)}
+            for hid, h in user_habits.items()
+        }),
+        'type_scheduled_json': json.dumps(type_scheduled_week),
     })
 
 
@@ -376,16 +419,14 @@ def habits_view(request):
     if not id_token:
         return redirect('login')
 
-    device_id = "device_001"
     user_habits = _get_user_habits(user_id, id_token)
     user_data = _get_user_data(user_id, id_token)
     display_name = user_data.get("name", "Usuario")
     photo_url = user_data.get("profile_picture") or "/static/main/profileicon.png"
 
-    progress = db.child("devices").child(device_id).child("progress").get(id_token).val() or {}
-    progress_values = list(progress.values()) if isinstance(progress, dict) else []
+    progress_values = _get_progress_values(user_id, id_token)
 
-    print(f"[habits_view] user={user_id} device={device_id} progress_count={len(progress_values)}")
+    print(f"[habits_view] user={user_id} progress_count={len(progress_values)}")
     if progress_values:
         print(f"[habits_view] sample record: {progress_values[0]}")
 
@@ -409,8 +450,9 @@ def habits_view(request):
     for habit_id, habit in user_habits.items():
         if not habit.get("active", True):
             continue
-        scheduled_today = js_day_today in habit.get("days", [])
-        day_labels = [days_es[d] for d in sorted(habit.get("days", [])) if 0 <= d < 7]
+        norm_days = _normalize_days(habit)
+        scheduled_today = js_day_today in norm_days
+        day_labels = [days_es[d] for d in sorted(norm_days) if 0 <= d < 7]
         habits_list.append({
             'id': habit_id,
             'name': habit.get('name', ''),
@@ -440,6 +482,9 @@ def habits_view(request):
         'habit_history_json': json.dumps(habit_history),
         'name': display_name,
         'photo_url': photo_url,
+        'today_str': today_str,
+        'user_id': user_id,
+        'fb_custom_token': _get_firebase_custom_token(user_id),
     })
 
 

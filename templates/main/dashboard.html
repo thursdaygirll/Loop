@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -113,8 +114,11 @@
         <div class="bg-navy px-6 sm:px-8 pt-7 pb-8">
             <div class="flex items-start justify-between mb-6">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-widest mb-1.5 text-brand-lt opacity-80">{% now "l, j N Y" %}</p>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-white">Hola, {{ name }} 👋</h1>
+                    <div class="flex items-center gap-3 mb-1.5">
+                        <p class="text-xs font-semibold uppercase tracking-widest text-brand-lt opacity-80">{% now "l, j N Y" %}</p>
+                        <span class="text-xs font-mono font-semibold text-brand-lt opacity-60" id="live-clock"></span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">Hola, {{ name }} <i data-lucide="hand-wave" class="w-7 h-7 text-brand-lt opacity-80"></i></h1>
                     <p class="text-sm mt-1 text-white/35">Aquí está tu resumen de hoy</p>
                 </div>
                 <a href="/profile/"><img src="{{ photo_url }}" class="hidden sm:block w-11 h-11 rounded-full object-cover" style="outline:2px solid rgba(255,255,255,.15);"></a>
@@ -123,17 +127,17 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Programados</p>
-                    <p class="text-3xl font-extrabold text-white">{{ total_today }}</p>
+                    <p class="text-3xl font-extrabold text-white" id="stat-total-today">{{ total_today }}</p>
                     <p class="text-xs text-white/25 mt-1">hábitos hoy</p>
                 </div>
                 <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Completados</p>
-                    <p class="text-3xl font-extrabold text-brand-lt">{{ completed_today }}</p>
-                    <p class="text-xs text-white/25 mt-1">de {{ total_today }} hoy</p>
+                    <p class="text-3xl font-extrabold text-brand-lt" id="stat-completed-today">{{ completed_today }}</p>
+                    <p class="text-xs text-white/25 mt-1" id="stat-completed-of">de {{ total_today }} hoy</p>
                 </div>
                 <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/35 mb-2">Mejor racha</p>
-                    <p class="text-3xl font-extrabold text-white">{{ best_streak }} 🔥</p>
+                    <p class="text-3xl font-extrabold text-white flex items-center gap-2">{{ best_streak }} <i data-lucide="flame" class="w-7 h-7 text-orange-400"></i></p>
                     <p class="text-xs text-white/25 mt-1 truncate">{{ best_streak_name|default:"—" }}</p>
                 </div>
                 <div class="rounded-2xl p-4 border border-white/8" style="background:rgba(255,255,255,.07)">
@@ -156,14 +160,22 @@
                     <!-- Gauge -->
                     <div class="card p-5 flex flex-col items-center">
                         <p class="text-sm font-semibold text-text-pri self-start mb-1">Progreso de hoy</p>
-                        <p class="text-xs text-text-muted self-start mb-4">{{ completed_today }} de {{ total_today }} completados</p>
-                        <div class="relative" style="width:160px;height:90px;overflow:hidden;">
-                            <canvas id="gaugeChart" width="160" height="160" style="width:160px;height:160px;position:absolute;top:0;left:0;"></canvas>
-                            <div class="absolute bottom-0 left-0 right-0 text-center">
-                                <span class="text-3xl font-extrabold text-navy">{{ progress_value }}</span><span class="text-base font-bold text-text-sec">%</span>
+                        <p class="text-xs text-text-muted self-start mb-4" id="gauge-subtitle">{{ completed_today }} de {{ total_today }} completados</p>
+                        <div class="relative mx-auto" style="width:160px;height:160px;">
+                            <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg);display:block;">
+                                <!-- Track -->
+                                <circle cx="80" cy="80" r="60" fill="none" stroke="#E6F0FA" stroke-width="14"/>
+                                <!-- Fill -->
+                                <circle id="gauge-ring" cx="80" cy="80" r="60" fill="none"
+                                        stroke="#87CEEB" stroke-width="14" stroke-linecap="round"
+                                        stroke-dasharray="376.99" stroke-dashoffset="376.99"
+                                        style="transition:stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1);"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <span class="text-3xl font-extrabold text-navy leading-none" id="gauge-pct-text">{{ progress_value }}</span><span class="text-base font-bold text-text-sec leading-none">%</span>
                             </div>
                         </div>
-                        {% if progress_value == 100 %}<p class="text-xs font-semibold text-food mt-3">¡Todo completado! 🎉</p>{% endif %}
+                        <p id="complete-msg" class="text-xs font-semibold text-food mt-3 flex items-center gap-1 {% if progress_value != 100 %}hidden{% endif %}">¡Todo completado! <i data-lucide="party-popper" class="w-4 h-4"></i></p>
                     </div>
 
                     <!-- Category pills -->
@@ -288,6 +300,8 @@
 {{ consistency_labels|json_script:"clabels" }}
 {{ consistency_data|json_script:"cdata" }}
 {{ type_completion_counts|json_script:"tcounts" }}
+{{ user_habits_json|json_script:"user-habits-data" }}
+{{ type_scheduled_json|json_script:"type-scheduled-data" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -320,15 +334,25 @@
     }
 
     // Apply on load (no animation flash)
-    document.addEventListener('DOMContentLoaded', () => updateSidebar(false));
+    document.addEventListener('DOMContentLoaded', () => { updateSidebar(false); lucide.createIcons(); });
+
+    // ── Live clock ────────────────────────────────────────────────────────────
+    function tickClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('live-clock').textContent = `${h}:${m}:${s}`;
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
 
     // ── Charts ────────────────────────────────────────────────────────────────
-    const gaugeVal = {{ progress_value }};
-    new Chart(document.getElementById('gaugeChart'), {
-        type: 'doughnut',
-        data: { datasets: [{ data: [gaugeVal, 100 - gaugeVal], backgroundColor: ['#87CEEB', '#E6F0FA'], borderWidth: 0 }] },
-        options: { rotation: 180, circumference: 180, cutout: '76%', responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-    });
+    // Animate gauge to server-rendered initial value
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        const ring = document.getElementById('gauge-ring');
+        if (ring) ring.style.strokeDashoffset = 376.99 * (1 - {{ progress_value }} / 100);
+    }));
 
     const labels  = JSON.parse(document.getElementById('clabels').textContent);
     const barData = JSON.parse(document.getElementById('cdata').textContent);
@@ -370,6 +394,81 @@
         data: { labels: ['Higiene','Salud','Nutrición'], datasets: [{ data: tot > 0 ? tc : [1,1,1], backgroundColor: tot > 0 ? ['#4A9EC4','#C49A2A','#3A9E3A'] : ['#BFE3FA','#FFF6CC','#D6F5D6'], borderWidth: 0, hoverOffset: 5 }] },
         options: { responsive: true, cutout: '68%', plugins: { legend: { display: false }, tooltip: { enabled: tot > 0, callbacks: { label: c => ` ${c.label}: ${c.parsed}` }, backgroundColor: '#1a2942', padding: 8, cornerRadius: 8 } } }
     });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const app = initializeApp({
+    apiKey: "AIzaSyD7cihT769KcAW2TI-6ojfpN_SV9yROkpY",
+    authDomain: "loopapp-13b10.firebaseapp.com",
+    projectId: "loopapp-13b10",
+    storageBucket: "loopapp-13b10.firebasestorage.app",
+    messagingSenderId: "764577657193",
+    appId: "1:764577657193:web:c2daa1bdaf99c1ccdb0df8"
+});
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+try {
+    await signInWithCustomToken(auth, "{{ fb_custom_token }}");
+} catch (e) {
+    console.error('[firebase] Auth error:', e.message);
+}
+
+const userId     = "{{ user_id }}";
+const todayJsDay = new Date().getDay(); // 0=Sun … 6=Sat
+// Compute today's date string client-side to match how the mobile app writes dates
+const _d = new Date();
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
+
+function pct(comp, sched) { return sched > 0 ? Math.round((comp / sched) * 100) : 0; }
+
+// Live state — updated by whichever listener fires first/next
+let liveHabits   = {};   // { habitId: { type, days: [int] } }
+let liveProgress = [];   // raw progress docs for today
+
+function recompute() {
+    const habitIds    = new Set(Object.keys(liveHabits));
+    const todayTotal  = Object.values(liveHabits)
+        .filter(h => (h.days || []).includes(todayJsDay)).length;
+    const completedToday = new Set(
+        liveProgress
+            .filter(p => p.completed && p.date === todayStr && habitIds.has(p.habit_id))
+            .map(p => p.habit_id)
+    );
+
+    const todayPct = pct(completedToday.size, todayTotal);
+
+    document.getElementById('stat-total-today').textContent     = todayTotal;
+    document.getElementById('stat-completed-today').textContent = completedToday.size;
+    document.getElementById('stat-completed-of').textContent    = `de ${todayTotal} hoy`;
+    document.getElementById('gauge-pct-text').textContent       = todayPct;
+    document.getElementById('gauge-subtitle').textContent       = `${completedToday.size} de ${todayTotal} completados`;
+    document.getElementById('complete-msg').classList.toggle('hidden', todayPct < 100);
+
+    const ring = document.getElementById('gauge-ring');
+    if (ring) ring.style.strokeDashoffset = 376.99 * (1 - todayPct / 100);
+}
+
+// Listen to habits — rebuilds totals when a habit is added/removed/edited
+onSnapshot(collection(db, "users", userId, "habits"), (snap) => {
+    liveHabits = {};
+    snap.forEach(doc => {
+        const h = doc.data();
+        if (h.active === false) return;
+        liveHabits[doc.id] = { type: h.type || '', days: (h.days || []).map(Number) };
+    });
+    recompute();
+});
+
+// Listen to progress — updates completed count in real time
+onSnapshot(collection(db, "devices", "device_001", "progress"), (snap) => {
+    liveProgress = snap.docs.map(d => d.data());
+    recompute();
+});
 </script>
 </body>
 </html>
